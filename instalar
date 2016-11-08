@@ -80,7 +80,7 @@ if [ $NFSMOUNT != 'started' ]; then
     /etc/init.d/nfsmount start &> /dev/null
 fi
 
-mkdir $LOCAL_MP
+mkdir -p $LOCAL_MP
 mount -o nolock $SERVER:$REMOTE_MP $LOCAL_MP &> /dev/null
 cd $IMAGE_DIR
 IMAGES=($(ls -f ./*.fsa))
