@@ -10,13 +10,14 @@
 
 #A copy of the GNU General Public License is available as /usr/share/common-licenses/GPL in the Debian GNU/Linux distribution or on the World Wide Web at the GNU website You can also obtain it by writing to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 
-SERVER=10.10.20.3
-HD='/dev/sda'
-HD_SWAP=4096
-HD_ROOT=20480
-LOCAL_MP='/tmp/pxe'
-REMOTE_MP='/pxe'
-IMAGE_DIR="$LOCAL_MP/img"
+SERVER=${SERVER:-10.10.20.3}
+HD=${HD:-'/dev/sda'}
+HD_SWAP=${HD_SWAP:-4096}
+HD_ROOT=${HD_ROOT:-20480}
+LOCAL_MP=${LOCAL_MP:-'/tmp/pxe'}
+REMOTE_MP=${REMOTE_MP:-'/pxe'}
+IMAGE_DIR="$LOCAL_MP/${IMAGE_DIR:-img}"
+
 NFSMOUNT=`/etc/init.d/nfsmount status | awk -F: '{print $2}' | sed 's/ //g'`
 START_TIME=0
 END_TIME=0
