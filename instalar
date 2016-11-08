@@ -119,26 +119,26 @@ function grub_install(){
 echo "* Instalación de GRUB *"
 
 echo "Montando $HD y sus particiones..."
-mkdir /tmp/root
-mount "$HD"1 /tmp/root
-mount -t proc proc /tmp/root/proc
-mount -t sysfs sys /tmp/root/sys
-mount -o bind /dev /tmp/root/dev
+local tmproot=$(mktemp -d)
+mount "$HD"1 $tmproot
+mount -t proc proc $tmproot/proc
+mount -t sysfs sys $tmproot/sys
+mount -o bind /dev $tmproot/dev
 
 echo "Instalando y configurando GRUB..."
-chroot /tmp/root update-grub2 &> /dev/null
-chroot /tmp/root grub-install $HD &> /dev/null
+chroot $tmproot update-grub2 &> /dev/null
+chroot $tmproot grub-install $HD &> /dev/null
 
 echo "Generando UUID $HD2 (swap)..."
-OLD_SWAP_UUID=`cat /tmp/root/etc/fstab | grep swap | grep 'UUID' | cut -d "=" -f 2 | cut -d " " -f 1`
-sed -i "s/$OLD_SWAP_UUID/$NEW_SWAP_UUID/g" /tmp/root/etc/fstab
+OLD_SWAP_UUID=`cat $tmproot/etc/fstab | grep swap | grep 'UUID' | cut -d "=" -f 2 | cut -d " " -f 1`
+sed -i "s/$OLD_SWAP_UUID/$NEW_SWAP_UUID/g" $tmproot/etc/fstab
 
 echo "Desmontando $HD y sus particiones"
-umount /tmp/root/dev
-umount /tmp/root/sys
-umount /tmp/root/proc
-umount /tmp/root
-rmdir /tmp/root
+umount $tmproot/dev
+umount $tmproot/sys
+umount $tmproot/proc
+umount $tmproot
+rmdir $tmproot
 }
 
 function end_msg(){
