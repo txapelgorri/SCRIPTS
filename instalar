@@ -10,13 +10,14 @@
 
 #A copy of the GNU General Public License is available as /usr/share/common-licenses/GPL in the Debian GNU/Linux distribution or on the World Wide Web at the GNU website You can also obtain it by writing to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 
-SERVER=10.10.20.3
-HD='/dev/sda'
-HD_SWAP=4096
-HD_ROOT=20480
-LOCAL_MP='/tmp/pxe'
-REMOTE_MP='/pxe'
-IMAGE_DIR="$LOCAL_MP/img"
+SERVER=${SERVER:-10.10.20.3}
+HD=${HD:-'/dev/sda'}
+HD_SWAP=${HD_SWAP:-4096}
+HD_ROOT=${HD_ROOT:-20480}
+LOCAL_MP=${LOCAL_MP:-'/tmp/pxe'}
+REMOTE_MP=${REMOTE_MP:-'/pxe'}
+IMAGE_DIR="$LOCAL_MP/${IMAGE_DIR:-img}"
+
 NFSMOUNT=`/etc/init.d/nfsmount status | awk -F: '{print $2}' | sed 's/ //g'`
 START_TIME=0
 END_TIME=0
@@ -63,7 +64,7 @@ sleep 5
 
 echo "Formateando las nuevas particiones..."
 mkfs -t ext4 "$HD"1 &> /dev/null
-NEW_SWAP_UUID=`mkswap /dev/sda2 | grep 'UUID' | cut -d "=" -f 2`
+NEW_SWAP_UUID=`mkswap "$HD"2 | grep 'UUID' | cut -d "=" -f 2`
 mkfs -t ext4 "$HD"3 &> /dev/null
 
 swapon "$HD"2 &> /dev/null
@@ -79,7 +80,7 @@ if [ $NFSMOUNT != 'started' ]; then
     /etc/init.d/nfsmount start &> /dev/null
 fi
 
-mkdir $LOCAL_MP
+mkdir -p $LOCAL_MP
 mount -o nolock $SERVER:$REMOTE_MP $LOCAL_MP &> /dev/null
 cd $IMAGE_DIR
 IMAGES=($(ls -f ./*.fsa))
@@ -118,26 +119,26 @@ function grub_install(){
 echo "* Instalación de GRUB *"
 
 echo "Montando $HD y sus particiones..."
-mkdir /tmp/root
-mount "$HD"1 /tmp/root
-mount -t proc proc /tmp/root/proc
-mount -t sysfs sys /tmp/root/sys
-mount -o bind /dev /tmp/root/dev
+local tmproot=$(mktemp -d)
+mount "$HD"1 $tmproot
+mount -t proc proc $tmproot/proc
+mount -t sysfs sys $tmproot/sys
+mount -o bind /dev $tmproot/dev
 
 echo "Instalando y configurando GRUB..."
-chroot /tmp/root update-grub2 &> /dev/null
-chroot /tmp/root grub-install $HD &> /dev/null
+chroot $tmproot update-grub2 &> /dev/null
+chroot $tmproot grub-install $HD &> /dev/null
 
 echo "Generando UUID $HD2 (swap)..."
-OLD_SWAP_UUID=`cat /tmp/root/etc/fstab | grep swap | grep 'UUID' | cut -d "=" -f 2 | cut -d " " -f 1`
-sed -i "s/$OLD_SWAP_UUID/$NEW_SWAP_UUID/g" /tmp/root/etc/fstab
+OLD_SWAP_UUID=`cat $tmproot/etc/fstab | grep swap | grep 'UUID' | cut -d "=" -f 2 | cut -d " " -f 1`
+sed -i "s/$OLD_SWAP_UUID/$NEW_SWAP_UUID/g" $tmproot/etc/fstab
 
 echo "Desmontando $HD y sus particiones"
-umount /tmp/root/dev
-umount /tmp/root/sys
-umount /tmp/root/proc
-umount /tmp/root
-rmdir /tmp/root
+umount $tmproot/dev
+umount $tmproot/sys
+umount $tmproot/proc
+umount $tmproot
+rmdir $tmproot
 }
 
 function end_msg(){
