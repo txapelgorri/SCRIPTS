@@ -159,5 +159,5 @@ echo
 end_msg
 echo
 
-exit(0)
+exit 0
 
