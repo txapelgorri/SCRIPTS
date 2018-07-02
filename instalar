@@ -9,6 +9,11 @@
 
 # A copy of the GNU General Public License is available as /usr/share/common-licenses/GPL in the Debian GNU/Linux distribution or on the World Wide Web at the GNU website You can also obtain it by writing to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
 
+# Text formatting
+BOLD=$(tput bold)
+REGULAR=$(tput sgr0)
+
+# Configuration
 SERVER=${SERVER:-10.10.20.3}
 HD=${HD:-'/dev/sda'}
 HD_SWAP=${HD_SWAP:-4096}
@@ -133,8 +138,8 @@ rmdir $tmproot
 function end_msg(){
 END_TIME=`date +%s`
 (( EXEC_TIME = $END_TIME - $START_TIME ))
-echo "Fin de la instalación: Ahora solo falta reiniciar el equio"
-echo "Tiempo de instalación: $EXEC_TIME segundos"
+echo "${BOLD}Tiempo de instalación: ${REGULAR}$EXEC_TIME segundos"
+echo "Fin de la instalación, ${BOLD}puede reiniciar el PC${REGULAR}"
 }
 
 echo
